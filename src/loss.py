@@ -82,6 +82,7 @@ def soft_info_nce_loss(features, sim_ij, batch_size, n_views, temperature, devic
     # 대각선(자기 자신과의 유사도)을 마스크 처리
     mask = torch.eye(labels.shape[0], dtype=torch.bool).to(device)
     labels = labels[~mask].view(labels.shape[0], -1)  # 대각선 제거
+    similarity_matrix = similarity_matrix[~mask].view(similarity_matrix.shape[0], -1)   # 대각선 제거
     sim_ij = sim_ij[~mask].view(sim_ij.shape[0], -1)  # 대각선 제거
 
     # 양성 샘플과 음성 샘플 분리

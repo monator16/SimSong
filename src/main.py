@@ -39,7 +39,7 @@ val_loader = DataLoader(val_contrastive_dataset, batch_size=16, shuffle=False)
 # ------------
 # model
 # ------------
-from models import ContrastiveModel
+from models import CotrastiveModel
 from ast_encoder import ASTEncoder
 from loss import soft_info_nce_loss, info_nce_loss
 from loss_weight import generate_lyrics_embeddings, compute_similarity
@@ -51,7 +51,7 @@ from loss_weight import generate_lyrics_embeddings, compute_similarity
 # 1. 모델과 옵티마이저 초기화
 ######## 여기 만들어야 함!!!!!!!!!!!!
 ast_encoder = ASTEncoder()
-model = ContrastiveModel(ast_encoder)
+model = CotrastiveModel(ast_encoder)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
 # 2. BERT 모델 로드 (가사 임베딩용)
