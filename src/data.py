@@ -97,17 +97,22 @@ class ContrastiveDataset(Dataset):
 
         audio, file_path = self.dataset[idx]
 
-        if audio.shape[1] < self.input_shape[1]:  #오디오 길이가 짧으면 제외
-            self.ignore_idx.append(idx)
-            return self[idx + 1]
 
         if self.transform:
             audio = self.transform(audio)
 
         # 전반부와 후반부로 나누고, 각각 연속된 클립을 선택하여 pair 생성
+        sample_rate = 44100
+        range = sample_rate*15
         mid_point = audio.shape[1] // 2
-        first_half = audio[:, :mid_point]
-        second_half = audio[:, mid_point:]
+        first_half = audio[:,range:mid_point]
+        second_half = audio[:,mid_point:audio.shape[1]-range]
+        
+        if audio.shape[1]-(range*2) < self.input_shape[1]:  #오디오 길이가 짧으면 제외
+            self.ignore_idx.append(idx)
+            return self[idx + 1]
+    
+    
 
         # 전반부와 후반부에서 각각 연속된 클립 추출
         clip_a = self._get_continuous_clip(first_half)
