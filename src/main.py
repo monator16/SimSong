@@ -73,7 +73,8 @@ for epoch in range(num_epochs):
         lyrics_embeddings = generate_lyrics_embeddings(file_ids, bert_model, tokenizer, device)
 
         # 3) 가사 임베딩들 간의 유사도 계산
-        sim_ij = compute_similarity(lyrics_embeddings)
+        sim_ij = compute_similarity(lyrics_embeddings.repeat(2, 1))
+
 
         # 4) 손실 계산
         loss = soft_info_nce_loss(
