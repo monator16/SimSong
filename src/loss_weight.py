@@ -11,7 +11,7 @@ def load_lyrics(file_id):
     
     # file_id에 해당하는 행을 찾기
     row = df[df['Track ID'] == file_id]
-    
+
     # 해당 file_id가 있는 경우 가사 반환
     if not row.empty:
         return row['Lyrics'].values[0]

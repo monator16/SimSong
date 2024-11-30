@@ -19,7 +19,6 @@ Original file is located at
 # !pip install torch torchaudio
 
 # !pip install "transformers[sentencepiece]"
-
 from transformers import AutoFeatureExtractor, ASTModel
 import torch
 import torchaudio
@@ -31,7 +30,7 @@ class ASTEncoder:
         self.sampling_rate = sampling_rate
         self.extractor = AutoFeatureExtractor.from_pretrained(model_name, sampling_rate=sampling_rate, do_normalize=True)  # 입력 16khz로 맞추기, normalize 진행
         self.model = ASTModel.from_pretrained(model_name)
-        self.model.eval()
+        self.model.train()
         self.output_dim = self.model.config.hidden_size
 
     def preprocess(self, clip_a, clip_b):
@@ -60,15 +59,17 @@ class ASTEncoder:
                 # unsqueeze를 통해 차원 추가
                 input_values = input_values.unsqueeze(0)  # (1, max_length, num_mel_bins) 형태로 변환
 
+
                 # 입력 텐서의 모양 확인
                 print("After Unsqueeze Input Values Shape:", input_values.shape)
 
-                with torch.no_grad():
-                    output = self.model(input_values).last_hidden_state
-                channel_embeddings.append(output.squeeze().cpu().numpy())
+                #with torch.no_grad():
+                output = self.model(input_values).last_hidden_state
+
+                channel_embeddings.append(output.squeeze().detach().cpu().numpy())
 
             clip_a_embeddings.append(np.mean(channel_embeddings, axis=0))
-
+  
         for audio in clip_b:
             #두 채널인 경우 두 채널 모두 처리 : 스트레오 오디오면 2개의 좌우채널 존재
             if audio.ndim >1:
@@ -92,14 +93,21 @@ class ASTEncoder:
 
                 # unsqueeze를 통해 차원 추가
                 input_values = input_values.unsqueeze(0)  # (1, max_length, num_mel_bins) 형태로 변환
-
                 
-                with torch.no_grad():
-                    output = self.model(input_values).last_hidden_state
-                channel_embeddings.append(output.squeeze().cpu().numpy())
+                #with torch.no_grad():
+                output = self.model(input_values).last_hidden_state
+                print(output.shape)
+                channel_embeddings.append(output.squeeze().detach().cpu().numpy())
 
             clip_b_embeddings.append(np.mean(channel_embeddings, axis=0))
-        
+            
+
+        # flatten하여 2차원 텐서로 변환 (batch_size, embedding_dim)
+        clip_a_embeddings = np.array(clip_a_embeddings)
+        clip_b_embeddings = np.array(clip_b_embeddings)
+
+        # 각 배치의 임베딩을 펼쳐서 차원을 flatten
+        clip_a_embeddings = clip_a_embeddings.reshape(clip_a_embeddings.shape[0], -1)
+        clip_b_embeddings = clip_b_embeddings.reshape(clip_b_embeddings.shape[0], -1)
+
         return clip_a_embeddings, clip_b_embeddings
-
-

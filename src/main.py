@@ -42,7 +42,7 @@ val_loader = DataLoader(val_contrastive_dataset, batch_size=16, shuffle=False)
 # ------------
 # model
 # ------------
-from models import ContrastiveModel
+from models import CotrastiveModel
 from ast_encoder import ASTEncoder
 from loss import soft_info_nce_loss
 from loss_weight import generate_lyrics_embeddings, compute_similarity
@@ -50,7 +50,7 @@ from loss_weight import generate_lyrics_embeddings, compute_similarity
 # 1. 모델과 옵티마이저 초기화
 ######## 여기 만들어야 함!!!!!!!!!!!!
 ast_encoder = ASTEncoder()
-model = ContrastiveModel(ast_encoder)
+model = CotrastiveModel(ast_encoder)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
 # 2. BERT 모델 로드 (가사 임베딩용)
@@ -60,21 +60,24 @@ bert_model = BertModel.from_pretrained("bert-base-uncased").to(device)
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
 # 3. 학습 루프
-num_epochs = #설정해야 함
-batch_size = #설정해야 함
+num_epochs = 1
+batch_size = 2
 for epoch in range(num_epochs):
     for batch in train_loader:
-        clip_a, clip_b, file_ids = batch  # 오디오와 file_ids 로드
+        clip_a, clip_b, file_ids, target_value = batch  # 오디오와 file_ids 로드
 
         # 1) 오디오 임베딩 생성 (오디오는 로스 계산에만 사용)
-        audio_embeddings = ast_encoder.preprocess(clip_a, clip_b)
+        projected_a, projected_b = model(clip_a, clip_b)
+
+        audio_embeddings = torch.cat([projected_a, projected_b], dim=0)  # Combine along the batch dimension
+        print(audio_embeddings.shape)
 
         # 2) 가사 임베딩 생성
         lyrics_embeddings = generate_lyrics_embeddings(file_ids, bert_model, tokenizer, device)
 
         # 3) 가사 임베딩들 간의 유사도 계산
-        sim_ij = compute_similarity(lyrics_embeddings.repeat(2, 1))
-        
+        sim_ij = compute_similarity(lyrics_embeddings.repeat(2, 1))        
+
         # 4) 손실 계산
         loss = soft_info_nce_loss(
             features=audio_embeddings,
@@ -84,10 +87,9 @@ for epoch in range(num_epochs):
             temperature=0.07,
             device=device
         )
-
+        loss = loss.requires_grad_()
+        
         # 5) 역전파 및 최적화
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
-    print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
