@@ -21,19 +21,22 @@ transform = Compose([])
 
 # 데이터 경로 설정
 dataset_dir = "./data/mp3"
+sim_set_dir = './data/filtered_lyrics_with_sets.csv'
+
+target_column = 'Set Index'
 
 # 오디오 파일 경로 및 데이터셋 준비
 train_dataset, val_dataset = create_contrastive_datasets(dataset_dir, train_ratio=0.8)
 
 # ContrastiveDataset으로 변환
 sample_rate = 44100 # [1, sample_rate*30]: 30초로 구간 설정
-train_contrastive_dataset = ContrastiveDataset(train_dataset, input_shape=[1, sample_rate*30], transform=transform)
-val_contrastive_dataset = ContrastiveDataset(val_dataset, input_shape=[1, sample_rate*30], transform=transform)
+train_contrastive_dataset = ContrastiveDataset(train_dataset, sim_set_dir, target_column, input_shape=[1, sample_rate*30], transform=transform)
+val_contrastive_dataset = ContrastiveDataset(val_dataset, sim_set_dir, target_column, input_shape=[1, sample_rate*30], transform=transform)
 
 # DataLoader로 배치 생성
 train_loader = DataLoader(train_contrastive_dataset, batch_size=16, shuffle=True)
 val_loader = DataLoader(val_contrastive_dataset, batch_size=16, shuffle=False)
-# -> 한 배치의 구성 : clip_a, clip_b, file_id
+# -> 한 배치의 구성 : clip_a, clip_b, file_id, target_value
 
 
 # ------------

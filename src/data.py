@@ -78,19 +78,24 @@ from torch.utils.data import Dataset
 from torchaudio_augmentations import Compose
 from typing import Tuple, List
 import random
+import pandas as pd
+import os
 
 class ContrastiveDataset(Dataset):
-    def __init__(self, dataset: Dataset, input_shape: List[int], transform: Compose):
+    def __init__(self, dataset: Dataset, dir, target_column, input_shape: List[int], transform: Compose):
+        # dir : sim_set이 들어있는 최종 csv 파일 경로
         self.dataset = dataset
         self.transform = transform
         self.input_shape = input_shape
         self.ignore_idx = []
+        self.metadata = pd.read_csv(dir)  # CSV 파일 읽기
+        self.target_column = target_column
 
     def __getitem__(self, idx) -> Tuple[Tensor, Tensor]:
         if idx in self.ignore_idx:
             return self[idx + 1]
 
-        audio, label = self.dataset[idx]
+        audio, file_path = self.dataset[idx]
 
         if audio.shape[1] < self.input_shape[1]:  #오디오 길이가 짧으면 제외
             self.ignore_idx.append(idx)
@@ -108,7 +113,18 @@ class ContrastiveDataset(Dataset):
         clip_a = self._get_continuous_clip(first_half)
         clip_b = self._get_continuous_clip(second_half)
 
-        return clip_a, clip_b
+        # 파일 경로에서 파일 이름(ID) 추출
+        file_name = os.path.basename(file_path)
+        file_id = os.path.splitext(file_name)[0]
+
+        # file_id를 기준으로 CSV에서 target_column 값 가져오기
+        target_value = None
+        if file_id in self.metadata.iloc[:, 0].values:  # 첫 번째 열에 file_id가 있는지 확인
+            row = self.metadata[self.metadata.iloc[:, 0] == file_id]
+            target_value = row[self.target_column].values[0]  # 특정 열 값 가져오기
+            
+        # 클립 A, 클립 B, 곡 ID를 반환
+        return clip_a, clip_b, file_id, target_value #target_value는 해당 set 인덱스
 
     def __len__(self) -> int:
         return len(self.dataset)
