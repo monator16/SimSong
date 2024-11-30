@@ -2,10 +2,21 @@
 '''
 import torch
 import torch.nn.functional as F
+import pandas as pd
 
 def load_lyrics(file_id):
-    # 실제로는 데이터베이스나 파일에서 file_id에 해당하는 가사를 로드하는 코드 필요
-    return "Sample lyrics text for file_id: " + str(file_id)
+    # CSV 파일 로드 (파일은 최종 파일로 함!!!!!!1)
+    sim_set_dir = './data/filtered_lyrics_with_sets.csv'
+    df = pd.read_csv(sim_set_dir)
+    
+    # file_id에 해당하는 행을 찾기
+    row = df[df['Track ID'] == file_id]
+    
+    # 해당 file_id가 있는 경우 가사 반환
+    if not row.empty:
+        return row['Lyrics'].values[0]
+    else:
+        return "Lyrics not found for file_id: " + str(file_id)
 
 def generate_lyrics_embeddings(file_ids, bert_model, tokenizer, device):
     """
