@@ -62,12 +62,19 @@ tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 # 3. 학습 루프
 num_epochs = #설정해야 함
 batch_size = #설정해야 함
+model.train()
+
 for epoch in range(num_epochs):
     for batch in train_loader:
         clip_a, clip_b, file_ids = batch  # 오디오와 file_ids 로드
-
+        
+        clip_a = clip_a.to(device)
+        clip_b = clip_b.to(device)
         # 1) 오디오 임베딩 생성 (오디오는 로스 계산에만 사용)
-        audio_embeddings = ast_encoder.preprocess(clip_a, clip_b)
+        # AST이후 projection까지 
+        clip_a_embeddings, clip_b_embeddings = model(clip_a, clip_b)
+
+        #위의 임베딩 audio_embeddigs로 합쳐야 함 
 
         # 2) 가사 임베딩 생성
         lyrics_embeddings = generate_lyrics_embeddings(file_ids, bert_model, tokenizer, device)
