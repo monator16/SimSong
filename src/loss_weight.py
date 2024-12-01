@@ -6,7 +6,7 @@ import pandas as pd
 
 def load_lyrics(file_id):
     # CSV 파일 로드 (파일은 최종 파일로 함!!!!!!1)
-    sim_set_dir = './data/filtered_lyrics_with_sets.csv'
+    sim_set_dir = '/home/elicer/project/data/final_final.csv'
     df = pd.read_csv(sim_set_dir)
     
     # file_id에 해당하는 행을 찾기

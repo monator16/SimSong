@@ -10,7 +10,7 @@ import json
 #%%
 # Define file paths
 base_file = 'youtubeUrl_241130.csv'
-sim = 'data/filtered_lyrics_with_sets.csv'
+sim = 'data\filtered_lyrics_with_sets.csv'
 base_url = "https://www.youtube.com/watch?v="
 
 # Read CSV files
@@ -40,8 +40,14 @@ else:
 # base 파일에서 각 행을 순차적으로 처리, 체크포인트 인덱스 이후부터 시작
 for index, row in df_base.iloc[start_index:].iterrows():
     # title과 artist를 합쳐서 검색할 문자열 생성
+    title_artist = f"{row['title']} {row['artist']}"  # 'a' 문자열 생성
+    
+    # filtered_lyrics_file에서 일치하는 trackid 찾기
+    matching_row = df_lyrics[df_lyrics['Title'] + ' ' + df_lyrics['Artist'] == title_artist]
+    
+    if not matching_row.empty:
         # 일치하는 trackid 추출
-        trackid = row["Track ID"]
+        trackid = matching_row['Track ID'].values[0]
         
         # yt-dlp의 출력 템플릿과 옵션 설정
         ydl_opts = {
@@ -73,6 +79,8 @@ for index, row in df_base.iloc[start_index:].iterrows():
             # 오류 발생 시 계속해서 다음 곡을 처리하려면 continue 사용
             continue
 
+    else:
+        print(f"{title_artist}에 대한 일치 항목을 찾을 수 없음")
 
 # 모든 다운로드가 완료되면 체크포인트 파일을 삭제할 수 있음 (선택 사항)
 # os.remove(checkpoint_file)

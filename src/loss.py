@@ -6,6 +6,9 @@
 import torch
 import torch.nn.functional as F
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def info_nce_loss(features, batch_size, n_views, temperature, device):
     '''
     Args:
@@ -18,13 +21,13 @@ def info_nce_loss(features, batch_size, n_views, temperature, device):
         loss: InfoNCE 손실 값
     '''
     # 레이블 생성 (각 샘플의 모든 뷰는 동일한 레이블을 가짐)
-    labels = torch.cat([torch.arange(batch_size) for i in range(n_views)], dim=0)
+    labels = torch.cat([torch.arange(batch_size) for i in range(n_views)], dim=0).to(device)
     labels = (labels.unsqueeze(0) == labels.unsqueeze(1)).float()  # 같은 샘플끼리는 1, 다른 샘플은 0
     labels = labels.to(device)
 
     # 특성 벡터 정규화 & 유사도 행렬 계산 (코사인 유사도)
-    features = F.normalize(features, dim=1)
-    similarity_matrix = torch.matmul(features, features.T)
+    features = F.normalize(features, dim=1).to(device)
+    similarity_matrix = torch.matmul(features, features.T).to(device)
 
     # 주대각선 항목(자기 자신과의 유사도)을 마스크 처리
     mask = torch.eye(labels.shape[0], dtype=torch.bool).to(device)
@@ -72,12 +75,12 @@ def soft_info_nce_loss(features, sim_ij, batch_size, n_views, temperature, devic
         loss (torch.Tensor): Soft-InfoNCE 손실 값 (스칼라).
     """
     # 레이블 생성: 동일 샘플의 모든 뷰는 동일한 레이블
-    labels = torch.cat([torch.arange(batch_size) for _ in range(n_views)], dim=0)
+    labels = torch.cat([torch.arange(batch_size) for _ in range(n_views)], dim=0).to(device)
     labels = (labels.unsqueeze(0) == labels.unsqueeze(1)).float().to(device)
 
     # 특성 정규화
-    features = F.normalize(features, dim=1)
-    similarity_matrix = torch.matmul(features, features.T)
+    features = F.normalize(features, dim=1).to(device)
+    similarity_matrix = torch.matmul(features, features.T).to(device)
 
     # 대각선(자기 자신과의 유사도)을 마스크 처리
     mask = torch.eye(labels.shape[0], dtype=torch.bool).to(device)
