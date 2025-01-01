@@ -24,20 +24,27 @@ import torch
 import torchaudio
 import os
 import numpy as np
+import torch.nn as nn
 
-class ASTEncoder:
+class ASTEncoder(nn.Module):
     def __init__(self, model_name="MIT/ast-finetuned-audioset-10-10-0.4593", sampling_rate=16000):
+        super(ASTEncoder, self).__init__()
         self.sampling_rate = sampling_rate
         self.extractor = AutoFeatureExtractor.from_pretrained(model_name, sampling_rate=sampling_rate, do_normalize=True)  # 입력 16khz로 맞추기, normalize 진행
         self.model = ASTModel.from_pretrained(model_name)
         self.training =True
         self.output_dim = self.model.config.hidden_size
 
-    def preprocess(self, clip_a, clip_b):
 
+    def preprocess(self, clip_a, clip_b,device):
 
         clip_a_embeddings = []
         clip_b_embeddings = []
+
+
+        model = self.model.to(device)
+        # Debugging: Check if the model is on the right device
+        # print(f"Model device: {model.device}")
 
         for audio in clip_a:
             #두 채널인 경우 두 채널 모두 처리 : 스트레오 오디오면 2개의 좌우채널 존재
@@ -54,16 +61,22 @@ class ASTEncoder:
                     #numpy 배열로 확실히 변환
                     input_values = np.array(input_values)
                     #텐서변환
-                    input_values = torch.from_numpy(input_values).unsqueeze(0)  # (1, max_length, num_mel_bins) 형태로 변환 (차원 추가)
 
-
+                    input_values = torch.from_numpy(input_values).unsqueeze(0).to(device)  # (1, max_length, num_mel_bins) 형태로 변환 (차원 추가)
+                    
+                    # Debugging: Check if the input values are on the correct device
+                    # print(f"Input values device: {input_values.device}")
+                    
                     if self.training:  
-                        self.model.train()
-                        output = self.model(input_values).last_hidden_state
+                        model.train()
+                        output = model(input_values).last_hidden_state
                     else:
-                        self.model.eval()
+                        model.eval()
                         with torch.no_grad():
-                            output = self.model(input_values).last_hidden_state
+                            output = model(input_values).last_hidden_state
+
+                     # Debugging: Check the output device
+                    # print(f"Output device: {output.device}")
                     channel_embeddings.append(output.squeeze().detach().cpu().numpy())
 
                 clip_a_embeddings.append(np.mean(channel_embeddings, axis=0))
@@ -86,16 +99,22 @@ class ASTEncoder:
                     input_values = np.array(input_values)
 
                     #텐서변환
-                    input_values = torch.from_numpy(input_values).unsqueeze(0)  # (1, max_length, num_mel_bins) 형태로 변환
+                    input_values = torch.from_numpy(input_values).unsqueeze(0).to(device)  # (1, max_length, num_mel_bins) 형태로 변환
                 
-                    
+                    # Debugging: Check if the input values are on the correct device
+                    # print(f"Input values device: {input_values.device}")
+
                     if self.training:  
-                        self.model.train()
-                        output = self.model(input_values).last_hidden_state
+                        model.train()
+                        output = model(input_values).last_hidden_state
                     else:
                         self.model.eval()
                         with torch.no_grad():
-                            output = self.model(input_values).last_hidden_state
+                            output = model(input_values).last_hidden_state
+
+                    # Debugging: Check the output device
+                    # print(f"Output device: {output.device}")
+
                     channel_embeddings.append(output.squeeze().detach().cpu().numpy())
                 
                     
@@ -110,6 +129,10 @@ class ASTEncoder:
         # 각 배치의 임베딩을 펼쳐서 차원을 flatten
         clip_a_embeddings = clip_a_embeddings.reshape(clip_a_embeddings.shape[0], -1)
         clip_b_embeddings = clip_b_embeddings.reshape(clip_b_embeddings.shape[0], -1)
+
+        # Debugging: Check final embeddings device
+        # print(f"Final clip_a_embeddings device: {torch.tensor(clip_a_embeddings).device}")
+        # print(f"Final clip_b_embeddings device: {torch.tensor(clip_b_embeddings).device}")
 
         return clip_a_embeddings, clip_b_embeddings
     
