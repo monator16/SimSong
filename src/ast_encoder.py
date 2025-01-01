@@ -38,7 +38,6 @@ class ASTEncoder(nn.Module):
 
     def preprocess(self, clip_a, clip_b,device):
 
-
         clip_a_embeddings = []
         clip_b_embeddings = []
 
@@ -62,6 +61,7 @@ class ASTEncoder(nn.Module):
                     #numpy 배열로 확실히 변환
                     input_values = np.array(input_values)
                     #텐서변환
+
                     input_values = torch.from_numpy(input_values).unsqueeze(0).to(device)  # (1, max_length, num_mel_bins) 형태로 변환 (차원 추가)
                     
                     # Debugging: Check if the input values are on the correct device
@@ -77,7 +77,6 @@ class ASTEncoder(nn.Module):
 
                      # Debugging: Check the output device
                     # print(f"Output device: {output.device}")
-                    
                     channel_embeddings.append(output.squeeze().detach().cpu().numpy())
 
                 clip_a_embeddings.append(np.mean(channel_embeddings, axis=0))
