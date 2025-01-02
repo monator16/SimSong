@@ -1,54 +1,72 @@
 
+# SimSong: Content-Based Similar Music Recommendation Using Contrastive Learning  
 
-# SimSong: Content-Based Music Recommendation System
+SimSong is a research project that develops a music recommendation system based on audio content and lyrics. By leveraging state-of-the-art transformer-based models and contrastive learning techniques, this system generates embeddings to enhance the user experience with accurate music recommendations.  
 
-## 📖 Project Overview
-SimSong is a music recommendation system that employs contrastive learning techniques to generate music embeddings based on audio and lyrical content. The project aims to enhance the accuracy of music recommendations by considering both melody and lyrics in the recommendation process.
+---
 
-## 🚀 Features
-- **Contrastive Learning**: Trains a model to create music embeddings that highlight contextual similarities among songs by comparing segments of the same song and contrasting them with others.
-- **Lyrical Similarity**: Incorporates a BERT model to calculate lyrical similarities, aligning them with audio representations to improve recommendations.
-  
-## 📊 Performance Metrics
-- **Recall@10**: 0.02
-- **Precision@10**: 0.0214
+## 📝 **Project Overview**  
 
-These metrics are used to evaluate the model's effectiveness in retrieving relevant recommendations based on user preferences.
+### **Background**  
+- Music, as an art form, is complex, involving elements like melody, ambiance, tempo, and lyrics. Capturing its essence with simple algorithms is challenging.  
+- Existing studies often focused on either audio content or lyrics, without effectively integrating both.  
+- This project bridges the gap by combining an Audio Spectrogram Transformer (AST) and contrastive learning to improve music recommendation systems.  
 
-## 🛠️ Installation
+### **Objective**  
+- Bring embeddings of different segments of the same song closer while adjusting the loss function based on lyrical similarity to capture contextual similarities in music.  
+- Enhance recommendation quality by considering the synergy of melody and lyrics.  
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/simsong.git
-cd simsong
-```
+---
 
-### 2. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+## 🛠 **Technologies and Methodology**  
 
-### 3. Run the Model
-```bash
-python main.py
-```
+### **Model Architecture**  
+1. **Audio Processing**  
+   - Creates 30-second audio segments, processed through AST to generate spectrograms.  
+   - AST is a transformer-based model capable of capturing long-range dependencies in audio data.  
+2. **Contrastive Learning**  
+   - Utilizes InfoNCE and Soft InfoNCE loss functions for embedding learning.  
+   - Soft InfoNCE incorporates lyric-based weighting for negative samples to refine the learning process.  
+3. **Lyric Processing**  
+   - Lyrics embeddings are computed using a BERT model to assess semantic similarity.  
 
-## 📚 Dataset
-This project utilizes the [Million Song Dataset (MSD)](https://millionsongdataset.com/) which consists of metadata and audio features for over one million contemporary popular music tracks. Additionally, we used the last.fm dataset for similarity scores and scraped raw audio and lyrics from YouTube and Genius.
+### **Dataset**  
+- **Million Song Dataset (MSD)**: Contains metadata and audio features for over a million songs.  
+- **Last.fm Dataset**: Provides song similarity scores.  
+- **YouTube & Genius**: Used for raw audio and lyrics.  
 
-## 🧪 Experiments
-The study was divided into two main models:
-1. **Weighted Negative Sampling (WNS)**: Uses soft InfoNCE loss to calculate a weighted negative loss.
-2. **Standard Negative Sampling (NS)**: Employs pure negative loss using InfoNCE loss.
+### **Evaluation Metrics**  
+- **Cosine Similarity**: Measures alignment between audio embeddings.  
+- **Recall@k**: Evaluates the ability of the system to meet user preferences through top-k recommendations.  
 
-### Data Preprocessing
-- **Sampling Rate**: Audio samples were processed at 16kHz.
-- **Segmentation**: Randomly selected segments to enhance context in recommendations.
+---
 
-## 🚧 Limitations
-- The model's performance may depend heavily on the quality of the datasets used. 
-- Future improvements could include better alignment of genres and incorporating more comprehensive datasets.
+## 📊 **Key Results**  
 
-## 👨‍💻 Authors
-- Youngseo Lee
-- Hyunji Lee
+- The model using Soft InfoNCE loss (WNS model) outperformed the one using InfoNCE loss (NS model).  
+- However, the overall performance (Recall@10 = 0.02) was limited due to dataset size and preprocessing constraints.  
+
+---
+
+## 📌 **Challenges and Improvements**  
+
+### **Identified Issues**  
+1. **Dataset Constraints**  
+   - Training involved only 400 songs, lacking diversity and scale.  
+2. **Preprocessing Impact**  
+   - Removing parts of audio (e.g., intros/outros) may have excluded critical musical elements.  
+
+### **Future Directions**  
+1. **Embedding Validation**  
+   - Test embeddings through tasks like genre classification or clustering to ensure meaningful representations.  
+2. **Data Expansion and Refinement**  
+   - Include more diverse music data and integrate artist and genre information for a comprehensive similarity metric.  
+
+---
+
+## 🚀 **Usage Instructions**  
+
+### **Setup**  
+-- need to update
+
+---
