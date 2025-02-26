@@ -1,4 +1,2 @@
 *.exe
 mp3/
-data/*.csv
-collect_data/*.csv
