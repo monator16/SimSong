@@ -1,2 +1,3 @@
 *.exe
 mp3/
+collect_data_v2/lastfm_similars.db
