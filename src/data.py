@@ -28,9 +28,28 @@ class AudioDataset(Dataset):
         file_path = self.file_paths[idx]
         waveform, sample_rate = torchaudio.load(file_path)
         
-       
-
         return waveform, file_path #file_path가 track_id
+
+
+
+
+# ------------
+# create_datsets
+# ------------
+def create_datsets(dataset_dir, state):
+    '''
+    train/test data 로드
+    Args:
+        dataset_dir (str): 오디오 파일이 포함된 디렉토리.
+        state (str): 'train' or 'test'
+    '''
+    path = os.path.join(dataset_dir, state)
+    data_files = os.listdir(path)
+    
+    dataset = AudioDataset(data_files)
+    
+    return dataset
+
 
 # ------------
 # create_contrastive_datasets
@@ -80,14 +99,16 @@ import pandas as pd
 import os
 
 class ContrastiveDataset(Dataset):
-    def __init__(self, dataset: Dataset, dir, target_column, input_shape: List[int]):
+    def __init__(self, dataset: Dataset, model_parameters):
         # dir : sim_set이 들어있는 최종 csv 파일 경로
         self.dataset = dataset
         # self.transform = transform
-        self.input_shape = input_shape
+        time = model_parameters['time']
+        sample_rate = model_parameters['sampe_rate']
+        self.input_shape = [1, sample_rate * time]
         self.ignore_idx = []
-        self.metadata = pd.read_csv(dir)  # CSV 파일 읽기
-        self.target_column = target_column
+        # self.metadata = pd.read_csv(dir)  # CSV 파일 읽기
+        # self.target_column = target_column
 
     def __getitem__(self, idx) -> Tuple[Tensor, Tensor]:
         sample_rate = 44100
@@ -117,18 +138,18 @@ class ContrastiveDataset(Dataset):
             file_id = os.path.splitext(file_name)[0]
 
             # file_id를 기준으로 CSV에서 target_column 값 가져오기
-            target_value = None
-            if file_id in self.metadata.iloc[:, 0].values:  # 첫 번째 열에 file_id가 있는지 확인
-                row = self.metadata[self.metadata.iloc[:, 0] == file_id]
-                target_value = row[self.target_column].values[0]  # 특정 열 값 가져오기
+            # target_value = None
+            # if file_id in self.metadata.iloc[:, 0].values:  # 첫 번째 열에 file_id가 있는지 확인
+            #     row = self.metadata[self.metadata.iloc[:, 0] == file_id]
+            #     target_value = row[self.target_column].values[0]  # 특정 열 값 가져오기
 
-            # target_value가 None인 경우, 데이터 건너뛰기
-            if target_value is None:
-                self.ignore_idx.append(idx)
-                return self[idx + 1]
+            # # target_value가 None인 경우, 데이터 건너뛰기
+            # if target_value is None:
+            #     self.ignore_idx.append(idx)
+            #     return self[idx + 1]
 
             # 클립 A, 클립 B, 곡 ID, 타겟 값을 반환
-            return clip_a, clip_b, file_id, target_value
+            return clip_a, clip_b, file_id
 
         except Exception as e:
             print(f"Error processing index {idx}: {e}")
