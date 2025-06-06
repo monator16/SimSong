@@ -60,7 +60,7 @@ class AUDIO(Dataset):
         # 스테레오 → 모노 변환 (채널 차원 기준 평균)
         if audio.size(0) > 1:  # [2, N] 형태인 경우
             audio = torch.mean(audio, dim=0, keepdim=True)  # [1, N]으로 변환
-            4
+
         label = []
         return audio, label
 
